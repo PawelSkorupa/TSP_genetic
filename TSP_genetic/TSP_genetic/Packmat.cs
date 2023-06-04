@@ -11,18 +11,17 @@ namespace TSP_genetic
     public struct Individual
     {
         public List<string> gnome;
-        public double routeLength; //długość trasy
+        public double routeLength; // route length
     }
     public class Packmat
     {
-        public List<string> allPackmatNumbers { get; private set; }
-        public List<string> routePackmatNumbers { get; set; }
-        public double[,] connectionMatrix { get; private set; }
+        public List<string> allPackmatNumbers { get; private set; } // list of all packmats
+        public List<string> routePackmatNumbers { get; set; } // list of packmats selected for route
+        public double[,] connectionMatrix { get; private set; } 
 
-        public int routePointsQuantity  { get; set; } //liczba paczkomatów które musimy odwiedzić 
-        // Initial population size for the algorithm
-        public int popSize { get; set; } // liczba osobników  // do zmiany później
-        public int gen_thres { get; set; } // liczba osobników  // do zmiany później
+        public int routePointsQuantity  { get; set; } // quantity of packats in a route
+        public int popSize { get; set; }
+        public int gen_thres { get; set; }
 
     public Packmat()
         {
@@ -34,6 +33,7 @@ namespace TSP_genetic
         {
             try
             {
+                // Loading allPackmatNumbers
                 string[] lines = File.ReadAllLines(filePath);
                 foreach (string line in lines)
                 {
@@ -51,7 +51,7 @@ namespace TSP_genetic
                         allPackmatNumbers.Add(packmat2);
                     }
                 }
-
+                //Creating connection matrix
                 connectionMatrix = new double[allPackmatNumbers.Count, allPackmatNumbers.Count];
                 for (int i = 0; i < connectionMatrix.GetLength(0); i++)
                 {
@@ -78,8 +78,8 @@ namespace TSP_genetic
                     }
                     else
                     {
-                        // Połączenie paczkomatu nie istnieje w macierzy
-                        // Wpisujemy wartość double.MaxValue
+                        // Connection doesn't exist in matrix
+                        // double.MaxValue is placed
                         if (index1 == -1)
                         {
                             connectionMatrix[index2, index2] = double.MaxValue;
@@ -105,6 +105,7 @@ namespace TSP_genetic
             int rnum = start + new Random().Next() % r;
             return rnum;
         }
+        //Gene mutation
         static List<string> MutatedGene(List<string> gnome)
         {
             while (true)
@@ -121,7 +122,9 @@ namespace TSP_genetic
             }
             return gnome;
         }
-        static List<string> CreateGnome(List<string> packmatRoute) // miesza genom zostawia na pierwszym i ostatnim miejscu ten sam paczkomat z którego zaczynamy i kończymy
+        //Creating initial gnome
+        // Swaps two values in gnome, ensures first and last element is our starting point (start and end point should be the same)
+        static List<string> CreateGnome(List<string> packmatRoute) 
         {
             List<string> genomeList = new List<string>();
             genomeList.Add(packmatRoute.First());
@@ -162,26 +165,6 @@ namespace TSP_genetic
         {
             return (90 * temp) / 100;
         }
-
-        //static List<string> RandomSelection(List<string> packmatNumbers)
-        //{
-        //    List<string> selection = new List<string>();
-
-        //    Random random = new Random();
-
-        //    while (selection.Count < 5)
-        //    {
-        //        int index = random.Next(packmatNumbers.Count);
-        //        string packmatNumber = packmatNumbers[index];
-
-        //        if (!selection.Contains(packmatNumber))
-        //        {
-        //            selection.Add(packmatNumber);
-        //        }
-        //    }
-
-        //    return selection;
-        //}
         public StringBuilder TSPUtil(double[,] map)
         {
             StringBuilder sb = new StringBuilder();
@@ -196,7 +179,7 @@ namespace TSP_genetic
             // Populating the GNOME pool.
             for (int i = 0; i < popSize; i++)
             {
-                temp.gnome = CreateGnome(routePackmatNumbers); // narazie dostaje wszystkie paczkomaty 
+                temp.gnome = CreateGnome(routePackmatNumbers); //Creates first gnome
                 temp.routeLength = CalFitness(temp.gnome, connectionMatrix);
                 population.Add(temp);
             }

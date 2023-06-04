@@ -1,5 +1,6 @@
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace TSP_genetic
 {
@@ -23,7 +24,16 @@ namespace TSP_genetic
 
         private void start_Click(object sender, EventArgs e)
         {
-            if (currentRoute.Count > 1)
+            if (!fileLoaded)
+            {
+                textBox1.AppendText("File not selected. Loading default file.");
+                textBox1.AppendText(Environment.NewLine);
+                textBox1.AppendText(paczkomat.LoadConnectionsFromFile(filePath));
+                textBox1.AppendText(Environment.NewLine);
+                fileLoaded= true;
+                CreateCheckboxes(paczkomat.allPackmatNumbers);
+            }
+            if (currentRoute.Count > 2)
             {
                 paczkomat.routePackmatNumbers = currentRoute;
                 paczkomat.routePointsQuantity = currentRoute.Count;
