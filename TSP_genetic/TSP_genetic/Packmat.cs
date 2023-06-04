@@ -22,6 +22,7 @@ namespace TSP_genetic
         public int routePointsQuantity  { get; set; } //liczba paczkomatów które musimy odwiedzić 
         // Initial population size for the algorithm
         public int popSize { get; set; } // liczba osobników  // do zmiany później
+        public int gen_thres { get; set; } // liczba osobników  // do zmiany później
 
     public Packmat()
         {
@@ -186,8 +187,6 @@ namespace TSP_genetic
             StringBuilder sb = new StringBuilder();
             // Generation Number
             int gen = 1;
-            // Number of Gene Iterations
-            int gen_thres = 20;
 
             List<Individual> population = new List<Individual>();
             Individual temp;

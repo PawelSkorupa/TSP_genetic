@@ -10,6 +10,7 @@ namespace TSP_genetic
         public string filePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "paczkomaty.txt");
         public bool fileLoaded = false;
         public int popCount = 10;
+        public int generationsCount = 10;
         public Form1()
         {
             InitializeComponent();
@@ -27,6 +28,7 @@ namespace TSP_genetic
                 paczkomat.routePackmatNumbers = currentRoute;
                 paczkomat.routePointsQuantity = currentRoute.Count;
                 paczkomat.popSize = popCount;
+                paczkomat.gen_thres = generationsCount;
                 textBox1.AppendText("Packmat numbers: ");
                 foreach (string packmanNo in paczkomat.allPackmatNumbers)
                 {
@@ -131,7 +133,7 @@ namespace TSP_genetic
 
         private void deselectAll_Click(object sender, EventArgs e)
         {
-            if (flowLayoutPanel1.Controls.Count >0)
+            if (flowLayoutPanel1.Controls.Count > 0)
             {
                 foreach (Control control in flowLayoutPanel1.Controls)
                 {
@@ -141,6 +143,35 @@ namespace TSP_genetic
                     }
                 }
             }
+        }
+        private void selectRandom_Click(object sender, EventArgs e)
+        {
+            if (flowLayoutPanel1.Controls.Count > 0)
+            {
+                Random random = new Random();
+
+                int count = 5;
+                int selectedCount = 0;
+                foreach (Control control in flowLayoutPanel1.Controls)
+                {
+                    if (control is CheckBox checkBox)
+                    {
+                        if (random.NextDouble() < (double)count / (flowLayoutPanel1.Controls.Count - selectedCount))
+                        {
+                            checkBox.Checked = true;
+                            selectedCount++;
+                            count--;
+                            if (count == 0)
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void numericUpDown2_ValueChanged(object sender, EventArgs e)
+        {
+            generationsCount = Convert.ToInt32(numericUpDown2.Value);
         }
     }
 }
