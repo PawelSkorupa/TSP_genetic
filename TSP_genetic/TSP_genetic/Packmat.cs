@@ -19,7 +19,7 @@ namespace TSP_genetic
         public List<string> routePackmatNumbers { get; private set; }
         public double[,] connectionMatrix { get; private set; }
 
-        public int routePointsQuantity = 20; // { get; private set; } liczba paczkomatów które musimy odwiedzić później trzeba zmienic na ilośc wybranych paczkomatów 
+        public int routePointsQuantity = 5; // { get; private set; } liczba paczkomatów które musimy odwiedzić później trzeba zmienic na ilośc wybranych paczkomatów 
 
         // Starting Node Value
         const int START = 0;
@@ -123,31 +123,20 @@ namespace TSP_genetic
             }
             return gnome;
         }
-        static bool Repeat(List<string> packmats, string packmatNo)// checks if packat occurs twice
-        {
-            foreach(string packNo in packmats)
-            {
-                if (packNo == packmatNo)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        static List<string> CreateGnome(List<string> packmatRoute) // miesza genom 
+        static List<string> CreateGnome(List<string> packmatRoute) // miesza genom zostawia na pierwszym i ostatnim miejscu ten sam paczkomat z którego zaczynamy i kończymy
         {
             List<string> genomeList = new List<string>();
-
-            while (genomeList.Count < packmatRoute.Count)
+            genomeList.Add(packmatRoute.First());
+            while (genomeList.Count < packmatRoute.Count-1)
             {
-                int temp = RandNum(0, packmatRoute.Count);
+                int temp = RandNum(1, packmatRoute.Count-1);
 
                 if (!genomeList.Contains(packmatRoute[temp]))
                 {
                     genomeList.Add(packmatRoute[temp]);
                 }
             }
-
+            genomeList.Add(packmatRoute.Last());
             return genomeList;
         }
         private double CalFitness(List<string> genome, double[,] distanceMatrix)
@@ -181,31 +170,58 @@ namespace TSP_genetic
         {
             return t1.routeLength < t2.routeLength;
         }
+
+        static List<string> RandomSelection(List<string> packmatNumbers)
+        {
+            List<string> selection = new List<string>();
+
+            Random random = new Random();
+
+            while (selection.Count < 5)
+            {
+                int index = random.Next(packmatNumbers.Count);
+                string packmatNumber = packmatNumbers[index];
+
+                if (!selection.Contains(packmatNumber))
+                {
+                    selection.Add(packmatNumber);
+                }
+            }
+
+            return selection;
+        }
         public StringBuilder TSPUtil(double[,] map)
         {
             StringBuilder sb = new StringBuilder();
             // Generation Number
             int gen = 1;
             // Number of Gene Iterations
-            int gen_thres = 5;
+            int gen_thres = 20;
 
             List<Individual> population = new List<Individual>();
             Individual temp;
-
+            List<string> route = RandomSelection(allPackmatNumbers);
+            route.Add(route[0]);
             // Populating the GNOME pool.
             for (int i = 0; i < POP_SIZE; i++)
             {
-                temp.gnome = CreateGnome(allPackmatNumbers); // narazie dostaje wszystkie paczkomaty 
+                temp.gnome = CreateGnome(route); // narazie dostaje wszystkie paczkomaty 
                 temp.routeLength = CalFitness(temp.gnome, connectionMatrix);
                 population.Add(temp);
             }
 
-            Console.WriteLine("\nInitial population: \nGNOME     FITNESS VALUE\n");
+            sb.Append("\nInitial population: \nGNOME     FITNESS VALUE\n");
+            sb.Append(Environment.NewLine);
             foreach (Individual ind in population)
             {
-                Console.WriteLine(ind.gnome + " " + ind.routeLength);
+                foreach(string p in ind.gnome)
+                {
+                    sb.Append(p + " ");
+                }
+                sb.Append(ind.routeLength.ToString("0.00") + " ");
+                sb.Append(Environment.NewLine);
             }
-            Console.WriteLine();
+            sb.Append(Environment.NewLine);
 
             bool found = false;
             int temperature = 10000;
@@ -215,7 +231,8 @@ namespace TSP_genetic
             while (temperature > 1000 && gen <= gen_thres)
             {
                 population = population.OrderBy(x => x.routeLength).ToList();
-                Console.WriteLine("\nCurrent temp: " + temperature + "\n");
+                sb.Append("\nCurrent temp: " + temperature + "\n");
+                sb.Append(Environment.NewLine);
                 List<Individual> new_population = new List<Individual>();
 
                 for (int i = 0; i < POP_SIZE; i++)
@@ -256,12 +273,18 @@ namespace TSP_genetic
                 population = new_population;
 
                 sb.Append("Generation " + gen + " \nGNOME     FITNESS VALUE\n");
-
+                sb.Append(Environment.NewLine);
                 foreach (Individual ind in population)
                 {
-                    sb.Append(ind.gnome + " " + ind.routeLength);
+                    foreach(string p in ind.gnome)
+                    {
+                        sb.Append(p + " ");
+                    }
+                    sb.Append(ind.routeLength.ToString("0.00") + " ");
+                    sb.Append(Environment.NewLine);
                 }
                 gen++;
+                sb.Append(Environment.NewLine);
             }
             return sb;
         }
