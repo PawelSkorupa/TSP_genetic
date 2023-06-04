@@ -197,7 +197,6 @@ namespace TSP_genetic
             }
             sb.Append(Environment.NewLine);
 
-            bool found = false;
             int temperature = 10000;
 
             // Iteration to perform
@@ -227,18 +226,17 @@ namespace TSP_genetic
                         }
                         else
                         {
-
-                            // Accepting the rejected children at
-                            // a possible probability above threshold.
-                            float prob = (float)Math.Pow(2.7,
-                                            -1 * ((float)(new_gnome.routeLength
-                                                    - population[i].routeLength)
-                                                / temperature));
-                            if (prob > 0.5)
-                            {
-                                new_population.Add(new_gnome);
-                                break;
-                            }
+                            ////// Accepting the rejected children at
+                            ////// a possible probability above threshold.
+                            //float prob = (float)Math.Pow(2.7,
+                            //                -1 * ((float)(new_gnome.routeLength
+                            //                        - population[i].routeLength)
+                            //                    / temperature));
+                            //if (prob > 0.9)
+                            //{
+                            //    new_population.Add(new_gnome);
+                            //    break;
+                            //}
                         }
                     }
                 }
@@ -260,6 +258,15 @@ namespace TSP_genetic
                 gen++;
                 sb.Append(Environment.NewLine);
             }
+            sb.Append(Environment.NewLine);
+            sb.Append("Shortest route lenght: " + population.Min(x => x.routeLength).ToString("0.00"));
+            sb.Append(Environment.NewLine);
+            int index = population.FindIndex(x => x.routeLength == population.Min(x => x.routeLength));
+            foreach (string s in population[index].gnome)
+            {
+                sb.Append(s + " " );
+            }
+            sb.Append(Environment.NewLine);
             if (routePackmatNumbers.Count > 0)
             {
                 routePackmatNumbers.RemoveAt(routePackmatNumbers.Count - 1);
