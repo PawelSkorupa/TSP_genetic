@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 // Structure of a GNOME
 // string defines the path traversed
 // by the salesman while the fitness value
@@ -117,8 +118,9 @@ public class TSP
 
 
     // Utility function for TSP problem.
-    static void TSPUtil(int[,] map)
+    public StringBuilder TSPUtil(double[,] map)
     {
+        StringBuilder sb = new StringBuilder();
         // Generation Number
         int gen = 1;
         // Number of Gene Iterations
@@ -189,23 +191,25 @@ public class TSP
 
             temperature = CoolDown(temperature);
             population = new_population;
-            Console.WriteLine("Generation " + gen + " \nGNOME     FITNESS VALUE\n");
+            
+            sb.Append("Generation " + gen + " \nGNOME     FITNESS VALUE\n");
 
             foreach (Individual ind in population)
             {
-                Console.WriteLine(ind.gnome + " " + ind.fitness);
+                sb.Append(ind.gnome + " " + ind.fitness);
             }
             gen++;
         }
+        return sb;
     }
 
     //static void Main(string[] args)
     //{
     //    int[,] map = new int[,] { { 0, 2, int.MaxValue, 12, 5 },
-    //                                  { 2, 0, 4, 8, int.MaxValue },
-    //                                  { int.MaxValue, 4, 0, 3, 3 },
-    //                                  { 12, 8, 3, 0, 10 },
-    //                                  { 5, int.MaxValue, 3, 10, 0 } };
+    //                              { 2, 0, 4, 8, int.MaxValue },
+    //                              { int.MaxValue, 4, 0, 3, 3 },
+    //                              { 12, 8, 3, 0, 10 },
+    //                              { 5, int.MaxValue, 3, 10, 0 } };
 
     //    TSPUtil(map);
     //}

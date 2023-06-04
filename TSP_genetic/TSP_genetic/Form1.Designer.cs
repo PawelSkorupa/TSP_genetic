@@ -37,13 +37,13 @@
             textBox1.Location = new Point(12, 12);
             textBox1.Multiline = true;
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(691, 339);
+            textBox1.Size = new Size(767, 468);
             textBox1.TabIndex = 0;
             textBox1.TextChanged += textBox1_TextChanged;
             // 
             // start
             // 
-            start.Location = new Point(259, 406);
+            start.Location = new Point(330, 486);
             start.Name = "start";
             start.Size = new Size(75, 23);
             start.TabIndex = 1;
@@ -55,7 +55,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(800, 521);
             Controls.Add(start);
             Controls.Add(textBox1);
             Name = "Form1";

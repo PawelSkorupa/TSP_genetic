@@ -4,74 +4,266 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace TSP_genetic
 {
+    public struct Individual
+    {
+        public List<string> gnome;
+        public double routeLength; //długość trasy
+    }
     public class Packmat
     {
-        public string PackmatNumber { get; set; }
-        public List<Tuple<string, float>> Connections { get; set; }
+        public List<string> allPackmatNumbers { get; private set; }
+        public List<string> routePackmatNumbers { get; private set; }
+        public double[,] connectionMatrix { get; private set; }
 
-        // Konstruktor
-        public Packmat(string packmatNumber)
-        {
-            PackmatNumber = packmatNumber;
-            Connections = new List<Tuple<string, float>>();
-        }
+        public int routePointsQuantity = 20; // { get; private set; } liczba paczkomatów które musimy odwiedzić później trzeba zmienic na ilośc wybranych paczkomatów 
+
+        // Starting Node Value
+        const int START = 0;
+        // Initial population size for the algorithm
+        const int POP_SIZE = 10; // liczba osobników  // do zmiany później
 
         public Packmat()
         {
-            PackmatNumber = "";
-            Connections = new List<Tuple<string, float>>();
+            allPackmatNumbers = new List<string>();
+            connectionMatrix = null;
         }
 
-        // Metoda do wczytywania danych z pliku
-        public static List<Packmat> LoadPackmatsFromFile(string filePath)
+        public string LoadConnectionsFromFile(string filePath)
         {
-            List<Packmat> Packmats = new List<Packmat>();
-
             try
             {
                 string[] lines = File.ReadAllLines(filePath);
+                foreach (string line in lines)
+                {
+                    string[] data = line.Split(';');
+                    string packmat1 = data[0];
+                    string packmat2 = data[1];
+                    double distance = double.Parse(data[2]);
+
+                    if (!allPackmatNumbers.Contains(packmat1))
+                    {
+                        allPackmatNumbers.Add(packmat1);
+                    }
+                    if (!allPackmatNumbers.Contains(packmat2))
+                    {
+                        allPackmatNumbers.Add(packmat2);
+                    }
+                }
+
+                connectionMatrix = new double[allPackmatNumbers.Count, allPackmatNumbers.Count];
+                for (int i = 0; i < connectionMatrix.GetLength(0); i++)
+                {
+                    for (int j = 0; j < connectionMatrix.GetLength(1); j++)
+                    {
+                        connectionMatrix[i, j] = double.PositiveInfinity;
+                    }
+                }
 
                 foreach (string line in lines)
                 {
-                    string[] parts = line.Split(';');
+                    string[] data = line.Split(';');
+                    string packmat1 = data[0];
+                    string packmat2 = data[1];
+                    double distance = double.Parse(data[2]);
 
-                    if (parts.Length == 3)
+                    int index1 = allPackmatNumbers.IndexOf(packmat1);
+                    int index2 = allPackmatNumbers.IndexOf(packmat2);
+
+                    if (index1 != -1 && index2 != -1)
                     {
-                        string packmatNumber1 = parts[0];
-                        string packmatNumber2 = parts[1];
-                        float distance = float.Parse(parts[2]);
-
-                        // Dodanie pierwszego Packmatu
-                        Packmat Packmat1 = Packmats.Find(p => p.PackmatNumber == packmatNumber1);
-                        if (Packmat1 == null)
+                        connectionMatrix[index1, index2] = distance;
+                        connectionMatrix[index2, index1] = distance;
+                    }
+                    else
+                    {
+                        // Połączenie paczkomatu nie istnieje w macierzy
+                        // Wpisujemy wartość double.MaxValue
+                        if (index1 == -1)
                         {
-                            Packmat1 = new Packmat(packmatNumber1);
-                            Packmats.Add(Packmat1);
+                            connectionMatrix[index2, index2] = double.MaxValue;
                         }
-
-                        // Dodanie drugiego Packmatu
-                        Packmat Packmat2 = Packmats.Find(p => p.PackmatNumber == packmatNumber2);
-                        if (Packmat2 == null)
+                        if (index2 == -1)
                         {
-                            Packmat2 = new Packmat(packmatNumber2);
-                            Packmats.Add(Packmat2);
+                            connectionMatrix[index1, index1] = double.MaxValue;
                         }
-
-                        // Dodanie połączenia
-                        Packmat1.Connections.Add(new Tuple<string, float>(packmatNumber2, distance));
-                        Packmat2.Connections.Add(new Tuple<string, float>(packmatNumber1, distance));
                     }
                 }
+
+                return "Connections loaded successfully.";
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Wystąpił błąd podczas wczytywania pliku: " + ex.Message);
+                return "An error occurred while loading connections: " + e.Message;
+            }
+        }
+
+        static int RandNum(int start, int end)
+        {
+            int r = end - start;
+            int rnum = start + new Random().Next() % r;
+            return rnum;
+        }
+        static List<string> MutatedGene(List<string> gnome)
+        {
+            while (true)
+            {
+                int r = RandNum(1, gnome.Count);
+                int r1 = RandNum(1, gnome.Count);
+                if (r1 != r)
+                {
+                    string temp = gnome[r];
+                    gnome[r] = gnome[r1];
+                    gnome[r1] = temp;
+                    break;
+                }
+            }
+            return gnome;
+        }
+        static bool Repeat(List<string> packmats, string packmatNo)// checks if packat occurs twice
+        {
+            foreach(string packNo in packmats)
+            {
+                if (packNo == packmatNo)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        static List<string> CreateGnome(List<string> packmatRoute) // miesza genom 
+        {
+            List<string> genomeList = new List<string>();
+
+            while (genomeList.Count < packmatRoute.Count)
+            {
+                int temp = RandNum(0, packmatRoute.Count);
+
+                if (!genomeList.Contains(packmatRoute[temp]))
+                {
+                    genomeList.Add(packmatRoute[temp]);
+                }
             }
 
-            return Packmats;
+            return genomeList;
+        }
+        private double CalFitness(List<string> genome, double[,] distanceMatrix)
+        {
+            double fitness = 0;
+            int numCities = genome.Count;
+
+            for (int i = 0; i < numCities - 1; i++)
+            {
+                string packmat1 = genome[i];
+                string packmat2 = genome[i + 1];
+
+                int index1 = allPackmatNumbers.IndexOf(packmat1);
+                int index2 = allPackmatNumbers.IndexOf(packmat2);
+
+                if (index1 != -1 && index2 != -1)
+                {
+                    double distance = distanceMatrix[index1, index2];
+                    fitness += distance;
+                }
+            }
+
+            return fitness;
+        }
+        static int CoolDown(int temp)
+        {
+            return (90 * temp) / 100;
+        }
+        // Comparator for GNOME struct.
+        static bool LessThan(Individual t1, Individual t2)
+        {
+            return t1.routeLength < t2.routeLength;
+        }
+        public StringBuilder TSPUtil(double[,] map)
+        {
+            StringBuilder sb = new StringBuilder();
+            // Generation Number
+            int gen = 1;
+            // Number of Gene Iterations
+            int gen_thres = 5;
+
+            List<Individual> population = new List<Individual>();
+            Individual temp;
+
+            // Populating the GNOME pool.
+            for (int i = 0; i < POP_SIZE; i++)
+            {
+                temp.gnome = CreateGnome(allPackmatNumbers); // narazie dostaje wszystkie paczkomaty 
+                temp.routeLength = CalFitness(temp.gnome, connectionMatrix);
+                population.Add(temp);
+            }
+
+            Console.WriteLine("\nInitial population: \nGNOME     FITNESS VALUE\n");
+            foreach (Individual ind in population)
+            {
+                Console.WriteLine(ind.gnome + " " + ind.routeLength);
+            }
+            Console.WriteLine();
+
+            bool found = false;
+            int temperature = 10000;
+
+            // Iteration to perform
+            // population crossing and gene mutation.
+            while (temperature > 1000 && gen <= gen_thres)
+            {
+                population = population.OrderBy(x => x.routeLength).ToList();
+                Console.WriteLine("\nCurrent temp: " + temperature + "\n");
+                List<Individual> new_population = new List<Individual>();
+
+                for (int i = 0; i < POP_SIZE; i++)
+                {
+                    Individual p1 = population[i];
+
+                    while (true)
+                    {
+                        List<string> new_g = MutatedGene(p1.gnome);
+                        Individual new_gnome;
+                        new_gnome.gnome = new_g;
+                        new_gnome.routeLength = CalFitness(new_gnome.gnome, connectionMatrix);
+
+                        if (new_gnome.routeLength <= population[i].routeLength)
+                        {
+                            new_population.Add(new_gnome);
+                            break;
+                        }
+                        else
+                        {
+
+                            // Accepting the rejected children at
+                            // a possible probability above threshold.
+                            float prob = (float)Math.Pow(2.7,
+                                            -1 * ((float)(new_gnome.routeLength
+                                                    - population[i].routeLength)
+                                                / temperature));
+                            if (prob > 0.5)
+                            {
+                                new_population.Add(new_gnome);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                temperature = CoolDown(temperature);
+                population = new_population;
+
+                sb.Append("Generation " + gen + " \nGNOME     FITNESS VALUE\n");
+
+                foreach (Individual ind in population)
+                {
+                    sb.Append(ind.gnome + " " + ind.routeLength);
+                }
+                gen++;
+            }
+            return sb;
         }
     }
 
