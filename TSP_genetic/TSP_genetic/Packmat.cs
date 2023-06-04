@@ -16,17 +16,14 @@ namespace TSP_genetic
     public class Packmat
     {
         public List<string> allPackmatNumbers { get; private set; }
-        public List<string> routePackmatNumbers { get; private set; }
+        public List<string> routePackmatNumbers { get; set; }
         public double[,] connectionMatrix { get; private set; }
 
-        public int routePointsQuantity = 5; // { get; private set; } liczba paczkomatów które musimy odwiedzić później trzeba zmienic na ilośc wybranych paczkomatów 
-
-        // Starting Node Value
-        const int START = 0;
+        public int routePointsQuantity  { get; set; } //liczba paczkomatów które musimy odwiedzić 
         // Initial population size for the algorithm
-        const int POP_SIZE = 10; // liczba osobników  // do zmiany później
+        public int popSize { get; set; } // liczba osobników  // do zmiany później
 
-        public Packmat()
+    public Packmat()
         {
             allPackmatNumbers = new List<string>();
             connectionMatrix = null;
@@ -111,8 +108,8 @@ namespace TSP_genetic
         {
             while (true)
             {
-                int r = RandNum(1, gnome.Count);
-                int r1 = RandNum(1, gnome.Count);
+                int r = RandNum(1, gnome.Count-1);
+                int r1 = RandNum(1, gnome.Count-1);
                 if (r1 != r)
                 {
                     string temp = gnome[r];
@@ -158,38 +155,32 @@ namespace TSP_genetic
                     fitness += distance;
                 }
             }
-
             return fitness;
         }
         static int CoolDown(int temp)
         {
             return (90 * temp) / 100;
         }
-        // Comparator for GNOME struct.
-        static bool LessThan(Individual t1, Individual t2)
-        {
-            return t1.routeLength < t2.routeLength;
-        }
 
-        static List<string> RandomSelection(List<string> packmatNumbers)
-        {
-            List<string> selection = new List<string>();
+        //static List<string> RandomSelection(List<string> packmatNumbers)
+        //{
+        //    List<string> selection = new List<string>();
 
-            Random random = new Random();
+        //    Random random = new Random();
 
-            while (selection.Count < 5)
-            {
-                int index = random.Next(packmatNumbers.Count);
-                string packmatNumber = packmatNumbers[index];
+        //    while (selection.Count < 5)
+        //    {
+        //        int index = random.Next(packmatNumbers.Count);
+        //        string packmatNumber = packmatNumbers[index];
 
-                if (!selection.Contains(packmatNumber))
-                {
-                    selection.Add(packmatNumber);
-                }
-            }
+        //        if (!selection.Contains(packmatNumber))
+        //        {
+        //            selection.Add(packmatNumber);
+        //        }
+        //    }
 
-            return selection;
-        }
+        //    return selection;
+        //}
         public StringBuilder TSPUtil(double[,] map)
         {
             StringBuilder sb = new StringBuilder();
@@ -200,12 +191,13 @@ namespace TSP_genetic
 
             List<Individual> population = new List<Individual>();
             Individual temp;
-            List<string> route = RandomSelection(allPackmatNumbers);
-            route.Add(route[0]);
+            routePackmatNumbers.Add(routePackmatNumbers[0]);
+
+
             // Populating the GNOME pool.
-            for (int i = 0; i < POP_SIZE; i++)
+            for (int i = 0; i < popSize; i++)
             {
-                temp.gnome = CreateGnome(route); // narazie dostaje wszystkie paczkomaty 
+                temp.gnome = CreateGnome(routePackmatNumbers); // narazie dostaje wszystkie paczkomaty 
                 temp.routeLength = CalFitness(temp.gnome, connectionMatrix);
                 population.Add(temp);
             }
@@ -235,7 +227,7 @@ namespace TSP_genetic
                 sb.Append(Environment.NewLine);
                 List<Individual> new_population = new List<Individual>();
 
-                for (int i = 0; i < POP_SIZE; i++)
+                for (int i = 0; i < popSize; i++)
                 {
                     Individual p1 = population[i];
 
@@ -285,6 +277,10 @@ namespace TSP_genetic
                 }
                 gen++;
                 sb.Append(Environment.NewLine);
+            }
+            if (routePackmatNumbers.Count > 0)
+            {
+                routePackmatNumbers.RemoveAt(routePackmatNumbers.Count - 1);
             }
             return sb;
         }
